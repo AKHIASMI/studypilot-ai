@@ -1,0 +1,9 @@
+STUDYPILOT AI - START HERE
+
+1. Extract this zip (right-click > Extract All).
+2. Double-click  index.html  to use the app in your browser (Chrome or Edge recommended).
+3. To edit the code: open VS Code > File > Open Folder > choose the StudyPilot-AI folder.
+   (Or double-click StudyPilot-AI.code-workspace)
+
+Your data is saved in your browser on this computer.
+See README.md for the file layout.

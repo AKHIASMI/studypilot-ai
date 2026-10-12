@@ -1,0 +1,9 @@
+{
+  "name": "studypilot-ai",
+  "version": "1.0.0",
+  "private": true,
+  "description": "StudyPilot AI: an adaptive study planner",
+  "scripts": {
+    "start": "npx --yes serve . -l 3000"
+  }
+}

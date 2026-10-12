@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>StudyPilot AI – a study planner that adapts when your week doesn't go to plan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --sky:#EAF1F8; --paper:#FFFFFF; --ink:#0F2A43; --muted:#4D6378; --line:#CBD9E6;
+  --blue:#2457D6; --amber:#E8940F; --mint:#1F8F68; --rose:#C9433B;
+  --c1:#2457D6; --c2:#1F8F68; --c3:#8A4FD1; --c4:#E8940F;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+:root:not([data-theme="light"]){}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){--sky:#0B1B2B;--paper:#12293F;--ink:#E8F0F8;--muted:#9FB4C8;--line:#27425B;--blue:#6C93FF;--amber:#F5B04A;--mint:#4CC79A;--rose:#FF8077;--c1:#6C93FF;--c2:#4CC79A;--c3:#B58CF0;--c4:#F5B04A}
+}
+:root[data-theme="dark"]{--sky:#0B1B2B;--paper:#12293F;--ink:#E8F0F8;--muted:#9FB4C8;--line:#27425B;--blue:#6C93FF;--amber:#F5B04A;--mint:#4CC79A;--rose:#FF8077;--c1:#6C93FF;--c2:#4CC79A;--c3:#B58CF0;--c4:#F5B04A}
+html{scroll-padding-top:env(safe-area-inset-top,0px);scroll-behavior:smooth}
+*{box-sizing:border-box}
+body{margin:0;background:var(--sky);color:var(--ink);font:400 17px/1.6 "Instrument Sans",system-ui,sans-serif}
+h1,h2,h3{font-family:"Bricolage Grotesque",Georgia,sans-serif;line-height:1.08;margin:0;letter-spacing:-.02em}
+h1{font-size:clamp(2.4rem,7vw,4.4rem);font-weight:800}
+h2{font-size:clamp(1.8rem,4.5vw,2.8rem);font-weight:700}
+h3{font-size:1.25rem;font-weight:700}
+p{margin:0}
+a{color:inherit}
+:focus-visible{outline:3px solid var(--amber);outline-offset:3px;border-radius:6px}
+.wrap{max-width:1080px;margin:0 auto;padding:0 20px}
+nav{display:flex;justify-content:space-between;align-items:center;padding:18px 0}
+.logo{font:800 1.25rem "Bricolage Grotesque",sans-serif;text-decoration:none;display:flex;align-items:center;gap:8px}
+.logo i{width:26px;height:26px;border-radius:8px;background:var(--blue);display:grid;place-items:center}
+.logo svg{width:15px;height:15px;fill:#fff}
+nav .links{display:flex;gap:22px;font-size:.95rem}
+nav .links a{text-decoration:none;color:var(--muted)}
+nav .links a:hover{color:var(--ink)}
+@media(max-width:640px){nav .links{display:none}}
+.btn{display:inline-block;background:var(--blue);color:#fff;font-weight:600;padding:13px 22px;border-radius:12px;text-decoration:none;border:0;font-size:1rem;cursor:pointer;font-family:inherit}
+.btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--line)}
+.hero{padding:36px 0 64px;display:grid;gap:36px}
+.hero p.lead{font-size:1.2rem;color:var(--muted);max-width:34em;margin-top:18px}
+.hero .cta{display:flex;gap:12px;flex-wrap:wrap;margin-top:26px}
+@media(min-width:900px){.hero{grid-template-columns:1fr 1.05fr;align-items:center;gap:48px}}
+/* demo */
+.demo{background:var(--paper);border:1.5px solid var(--line);border-radius:20px;padding:18px}
+.demo h3{font-size:1.05rem;margin-bottom:4px}
+.demo .sub{font-size:.9rem;color:var(--muted);margin-bottom:14px}
+.tasks{display:flex;flex-wrap:wrap;gap:8px 14px;font-size:.85rem;margin-bottom:14px}
+.tasks span{display:flex;align-items:center;gap:6px}
+.dot{width:11px;height:11px;border-radius:3px;display:inline-block}
+.grid{display:grid;gap:6px}
+.row{display:grid;grid-template-columns:52px 1fr;gap:8px;align-items:center}
+.day{font-weight:600;font-size:.9rem}
+.slots{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.slot{height:38px;border-radius:9px;border:1.5px dashed var(--line);font-size:.78rem;display:flex;align-items:center;padding:0 9px;color:#fff;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:background .35s,border-color .35s}
+.slot.on{border:0}
+.row.missed .slots{opacity:.55}
+.row.missed .slot{background:repeating-linear-gradient(45deg,transparent 0 6px,var(--line) 6px 7px);border:1.5px solid var(--line);color:var(--muted)}
+.late{box-shadow:0 0 0 2.5px var(--rose)}
+.status{margin-top:14px;padding:11px 14px;border-radius:12px;background:var(--sky);font-size:.92rem;min-height:3.4em}
+.status b{color:var(--mint)}
+.status.warn b{color:var(--rose)}
+.ctrls{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.ctrls button{font:600 .88rem "Instrument Sans",sans-serif;padding:9px 13px;border-radius:10px;border:1.5px solid var(--line);background:var(--paper);color:var(--ink);cursor:pointer}
+.ctrls button:hover{border-color:var(--blue)}
+.ctrls button[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+/* sections */
+section{padding:64px 0}
+.paper{background:var(--paper);border-block:1.5px solid var(--line)}
+.two{display:grid;gap:28px}
+@media(min-width:800px){.two{grid-template-columns:1fr 1.2fr;gap:56px}}
+.two p+p{margin-top:14px}
+.muted{color:var(--muted)}
+.steps{display:grid;gap:18px;margin-top:34px;counter-reset:s}
+@media(min-width:800px){.steps{grid-template-columns:repeat(3,1fr)}}
+.step{border-left:3px solid var(--blue);padding-left:16px;counter-increment:s}
+.step:nth-child(2){border-color:var(--mint)}.step:nth-child(3){border-color:var(--amber)}
+.step h3::before{content:"Step " counter(s) ". ";color:var(--muted);font-weight:500}
+.step p{margin-top:8px;color:var(--muted)}
+.ben{display:grid;gap:0;margin-top:30px;border-top:1.5px solid var(--line)}
+.ben div{display:grid;gap:4px;padding:20px 0;border-bottom:1.5px solid var(--line)}
+@media(min-width:800px){.ben div{grid-template-columns:1fr 2fr;gap:40px}}
+.ben p{color:var(--muted)}
+.compare{display:grid;gap:16px;margin-top:30px}
+@media(min-width:800px){.compare{grid-template-columns:1fr 1fr}}
+.box{padding:22px;border-radius:16px;border:1.5px solid var(--line);background:var(--sky)}
+.box.us{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.box ul{margin:12px 0 0;padding-left:20px}.box li{margin:6px 0}
+.stage{display:flex;gap:14px;align-items:flex-start;background:var(--sky);border:1.5px solid var(--line);border-radius:16px;padding:20px;margin-top:26px}
+.pill{background:var(--amber);color:#1b1200;font-weight:700;font-size:.85rem;border-radius:99px;padding:4px 12px;white-space:nowrap}
+form{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px}
+input{flex:1 1 240px;font:inherit;padding:13px 14px;border-radius:12px;border:1.5px solid var(--line);background:var(--sky);color:var(--ink)}
+#msg{margin-top:12px;font-weight:600;color:var(--mint);min-height:1.6em}
+footer{padding:30px 0 44px;color:var(--muted);font-size:.9rem}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<nav>
+  <a class="logo" href="#top"><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12 22 2l-5 20-4-8z"/></svg></i>StudyPilot AI</a>
+  <div class="links"><a href="#how">How it works</a><a href="#why">Benefits</a><a href="#different">What's different</a><a href="#join">Join</a></div>
+</nav>
+
+<header class="hero" id="top">
+  <div>
+    <h1>A study plan that bends when your week does.</h1>
+    <p class="lead">Add your subjects, deadlines and free hours. StudyPilot AI builds a realistic timetable, and when you miss a session or new work lands, it rearranges the rest so you're never starting over.</p>
+    <div class="cta"><a class="btn" href="#join">Get early access</a><a class="btn ghost" href="#how">See how it works</a></div>
+  </div>
+
+  <div class="demo" aria-labelledby="dt">
+    <h3 id="dt">Try it: break the plan</h3>
+    <p class="sub">Three hours a day, Monday to Saturday. Skip a day or add surprise work and watch the plan adjust.</p>
+    <div class="tasks" id="legend"></div>
+    <div class="grid" id="grid"></div>
+    <div class="ctrls">
+      <button id="bMiss" aria-pressed="false">Miss Monday</button>
+      <button id="bQuiz" aria-pressed="false">Add a 2h quiz due Wed</button>
+      <button id="bBig" aria-pressed="false">Add a 5h project due Thu</button>
+    </div>
+    <div class="status" id="status" role="status" aria-live="polite"></div>
+  </div>
+</header>
+</div>
+
+<section class="paper" id="problem">
+  <div class="wrap two">
+    <h2>Timetables break the first time life happens.</h2>
+    <div>
+      <p>Assignments, exams, lab work and everything else in college pile up at once. You make a timetable, then a task runs long or something unexpected comes up, and the plan stops matching reality.</p>
+      <p>After that it's hard to know what to study first or how to catch up on what you missed. So the timetable gets ignored, and the stress goes up.</p>
+    </div>
+  </div>
+</section>
+
+<section id="how">
+  <div class="wrap">
+    <h2>Tell it what's on. Get a plan you can follow.</h2>
+    <div class="steps">
+      <div class="step"><h3>Enter your workload</h3><p>List your subjects, assignments, exam dates and how much time you can study each day.</p></div>
+      <div class="step"><h3>Get a realistic timetable</h3><p>StudyPilot AI shows what needs attention first and spreads the work across your available hours.</p></div>
+      <div class="step"><h3>Replan in one tap</h3><p>Missed a session? Got extra work? The remaining tasks are reorganized around your deadlines and free time.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="paper" id="why">
+  <div class="wrap">
+    <h2>What students get</h2>
+    <div class="ben">
+      <div><h3>Better use of time</h3><p>See what needs attention first, so you spend less time deciding and more time studying.</p></div>
+      <div><h3>Deadlines met</h3><p>Finish assignments before they're due and prepare for exams in an organized way.</p></div>
+      <div><h3>Less overwhelm</h3><p>Instead of worrying about unfinished tasks, you know your next step.</p></div>
+      <div><h3>Progress you can see</h3><p>Track what you've done, spot subjects that need more attention, and build steadier study habits.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="different">
+  <div class="wrap">
+    <h2>A planner that expects things to go wrong.</h2>
+    <p class="muted" style="max-width:38em;margin-top:14px">College life is unpredictable. We don't ask you to fit a fixed timetable. The plan fits your real week.</p>
+    <div class="compare">
+      <div class="box"><h3>A typical timetable</h3><ul><li>Made once, then goes out of date</li><li>A missed session leaves gaps you fix by hand</li><li>Extra work means starting again</li></ul></div>
+      <div class="box us"><h3>StudyPilot AI</h3><ul><li>Updates when your week changes</li><li>Moves missed work to the next free hours</li><li>Orders tasks by deadline and time available</li></ul></div>
+    </div>
+    <div class="stage"><span class="pill">Just an idea</span><p class="muted">StudyPilot AI is at the idea stage. The demo above is a simple sketch of the replanning concept, not the finished product. We'll add a prototype or repository link here once there's something real to show.</p></div>
+  </div>
+</section>
+
+<section class="paper" id="join">
+  <div class="wrap">
+    <h2>Want to try it when it's ready?</h2>
+    <p class="muted" style="margin-top:12px;max-width:36em">Leave your email and we'll let you know when there's a prototype to test.</p>
+    <form id="f"><input type="email" id="em" placeholder="you@college.edu" aria-label="Email address" required><button class="btn" type="submit">Notify me</button></form>
+    <div id="msg" role="status" aria-live="polite"></div>
+  </div>
+</section>
+
+<div class="wrap"><footer>StudyPilot AI · A smart study planner for students</footer></div>
+
+<script>
+const days=["Mon","Tue","Wed","Thu","Fri","Sat"], CAP=3;
+const base=[
+ {n:"Calculus set",h:4,due:2,c:"var(--c1)"},
+ {n:"Physics lab",h:3,due:3,c:"var(--c2)"},
+ {n:"Chem exam prep",h:6,due:5,c:"var(--c3)"}
+];
+const quiz={n:"Surprise quiz",h:2,due:2,c:"var(--c4)"};
+const big={n:"Project",h:5,due:3,c:"var(--rose)"};
+const st={miss:false,quiz:false,big:false};
+const $=id=>document.getElementById(id);
+
+function plan(){
+  const tasks=[...base,...(st.quiz?[quiz]:[]),...(st.big?[big]:[])].sort((a,b)=>a.due-b.due);
+  const units=[];tasks.forEach(t=>{for(let i=0;i<t.h;i++)units.push(t)});
+  const cap=days.map((_,i)=>st.miss&&i===0?0:CAP);
+  const cells=days.map(()=>[]);let late=new Set(),unplaced=[];
+  let d=0;
+  for(const u of units){
+    while(d<days.length&&cells[d].length>=cap[d])d++;
+    if(d>=days.length){unplaced.push(u);continue}
+    cells[d].push({t:u,late:d>u.due});
+    if(d>u.due)late.add(u.n);
+  }
+  return {cells,late:[...late],unplaced:[...new Set(unplaced.map(u=>u.n))],tasks};
+}
+function render(){
+  const p=plan();
+  $("legend").innerHTML=p.tasks.map(t=>`<span><i class="dot" style="background:${t.c}"></i>${t.n} · ${t.h}h · due ${days[t.due]}</span>`).join("");
+  $("grid").innerHTML=p.cells.map((r,i)=>{
+    const m=st.miss&&i===0;
+    const s=[0,1,2].map(k=>{const c=r[k];
+      return c?`<div class="slot on ${c.late?"late":""}" style="background:${c.t.c}" title="${c.t.n}">${c.t.n}</div>`
+              :`<div class="slot">${m&&k===0?"Missed":""}</div>`}).join("");
+    return `<div class="row ${m?"missed":""}"><div class="day">${days[i]}</div><div class="slots">${s}</div></div>`}).join("");
+  const s=$("status");
+  if(p.unplaced.length){
+    s.className="status warn";
+    s.innerHTML=`<b>Not enough hours.</b> ${p.unplaced.join(", ")} won't fit this week. StudyPilot AI would flag it now so you can add time or move a deadline.`;
+  }else if(p.late.length){
+    s.className="status warn";
+    s.innerHTML=`<b>Heads up:</b> ${p.late.join(", ")} now lands after its deadline (outlined in red). StudyPilot AI would suggest extra time or a swap.`;
+  }else if(st.miss||st.quiz||st.big){
+    s.className="status";
+    s.innerHTML=`<b>Replanned.</b> Everything still fits before its deadline. Nothing for you to rebuild.`;
+  }else{
+    s.className="status";
+    s.innerHTML=`<b>On track.</b> 13 hours of work in 18 available hours, ordered by deadline.`;
+  }
+}
+[["bMiss","miss"],["bQuiz","quiz"],["bBig","big"]].forEach(([id,k])=>{
+  $(id).addEventListener("click",e=>{st[k]=!st[k];e.currentTarget.setAttribute("aria-pressed",st[k]);if(k==="miss")e.currentTarget.textContent=st[k]?"Undo missed Monday":"Miss Monday";render()});
+});
+render();
+$("f").addEventListener("submit",e=>{e.preventDefault();$("msg").textContent="Thanks! We'll let you know when there's a prototype to try.";$("em").value=""});
+</script>
+</body>
+</html>
